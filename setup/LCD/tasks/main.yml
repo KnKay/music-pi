@@ -1,0 +1,55 @@
+---
+  - name: Check display driver
+    lineinfile:
+      name: /boot/config.txt
+      regexp: "^dtoverlay=tft35a"
+      line: "dtoverlay=tft35a:rotate=90"
+      state: present
+    check_mode: yes
+    register: has_driver
+
+  - name: Install git
+    apt:
+      name: git
+      state: present
+    when: has_driver.changed
+
+  - name: Clone Display Repo
+    git:
+      repo: 'https://github.com/goodtft/LCD-show'
+      dest: LCD35-show
+      force: yes
+    when: has_driver.changed
+
+  - name: Make the install non restarting
+    lineinfile:
+      path: LCD35-show/LCD35-show
+      regexp: '^sudo reboot'
+      line: '#sudo reboot'
+    when: has_driver.changed
+
+  - name: Install driver
+    command: ./LCD35-show
+    args:
+      chdir: LCD35-show
+    when: has_driver.changed
+
+  - name: Remove installer
+    file:
+      path: LCD35-show
+      state: absent
+    when: has_driver.changed
+
+  - name: Force correct fbdriver
+    copy:
+      src: 99-fbturbo.conf
+      dest: /usr/share/X11/xorg.conf.d/99-fbturbo.conf
+      force: yes
+    when: has_driver.changed
+
+  - name: Reboot immediately if there was a change.
+    shell: "sleep 5 && reboot"
+    async: 1
+    poll: 0
+    when: has_driver.changed
+...
