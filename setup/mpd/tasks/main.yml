@@ -1,0 +1,26 @@
+---
+  - name: Install
+    ansible.builtin.apt:
+      name:
+        - mpd
+        - mpc
+        - ncmpcpp
+	- sonata
+
+  - name: Add docker gpg key
+    ansible.builtin.apt_key:
+      url: http://download.opensuse.org/repositories/home:/jcorporation/Debian_11/Release.key
+
+  - name: Add docker ce repository
+    ansible.builtin.apt_repository:
+      repo: deb http://download.opensuse.org/repositories/home:/jcorporation/Debian_11/
+      filename: custom-docker
+      mode: 0600
+
+  - name: Install
+    ansible.builtin.apt:
+      name:
+        - mympd
+
+# https://raspberrypi.stackexchange.com/questions/69204/open-chromium-full-screen-on-start-up
+...
